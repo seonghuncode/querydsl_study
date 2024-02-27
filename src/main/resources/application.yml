@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/querydsl
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create # 애플리케이션 로딩 시점에 모든 테이블을 drop하고 다시 생성하는 방식
+    properties:
+      hibernate:
+        #show_sql: true # 쿼리를 콘손로 보기 위한 설정 (System.out으로 출력)
+        format_sql: true # 쿼리를 콘손로 보기 위한 설정
+
+logging.level:
+  org.hibernate.SQL: debug # 하이버네이트에서 실행 되는 쿼리들이 logger로 출력이 된다.
+  org.hibernate.type: trace # 로그로 찍히는 쿼리중 ?로 찍히지 않고 실제 커럶 값이 찍히도록 하는 설정

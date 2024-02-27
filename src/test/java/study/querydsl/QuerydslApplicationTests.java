@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Hello;
 import study.querydsl.entity.QHello;
@@ -13,7 +14,8 @@ import javax.persistence.EntityManager;
 
 
 @SpringBootTest
-@Transactional
+@Transactional // 테스트가 종료되면 바로 Rollback을 시키기 때문에 테스트의 경우 실제 DB에 반영되지 않는다.
+@Commit // 테스트가 종료되더라도 Rollback시키지 않고 DB에 반영되게 하고 싶을 경우 사용
 class QuerydslApplicationTests {
 
 	@Autowired
