@@ -58,12 +58,11 @@ public class QuerydslBasicTest {
         JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
 
         //Q파일을 사용하기 위해 Gradle > Tasks > other > compileQuerydsl클릭(build>generated아래 Q파일 생성됨)
-        QMember m = new QMember("m"); //변수이름을 만들어 준다
 
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1"))
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.eq("member1"))
                 .fetchOne();
 
         Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
