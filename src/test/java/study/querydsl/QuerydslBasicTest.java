@@ -163,5 +163,37 @@ public class QuerydslBasicTest {
         Assertions.assertThat(memberNull.getUsername()).isNull();
     }
 
+    //페이징
+    @Test
+    public void paging1(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .orderBy(QMember.member.username.desc())
+                .offset(1) //1를 스킵한다는 의미
+                .limit(2)
+                .fetch();
+
+        Assertions.assertThat(result.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void paging2(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        QueryResults<Member> queryResults = queryFactory
+                .selectFrom(QMember.member)
+                .orderBy(QMember.member.username.desc())
+                .offset(1) //1를 스킵한다는 의미
+                .limit(2)
+                .fetchResults();
+
+        Assertions.assertThat(queryResults.getTotal()).isEqualTo(4);
+        Assertions.assertThat(queryResults.getLimit()).isEqualTo(2);
+        Assertions.assertThat(queryResults.getOffset()).isEqualTo(1);
+        Assertions.assertThat(queryResults.getResults().size()).isEqualTo(2);
+    }
+
 
 }
