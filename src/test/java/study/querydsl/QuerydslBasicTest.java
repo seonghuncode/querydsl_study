@@ -4,12 +4,14 @@ package study.querydsl;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assert;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -512,6 +514,78 @@ public class QuerydslBasicTest {
             System.out.println("s : " + s);
         }
     }
+
+    //상수 사용 예제
+    @Test
+    public void constant(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Tuple> reuslt = queryFactory
+                .select(QMember.member, Expressions.constant("A"))
+                .from(QMember.member)
+                .fetch();
+
+        for(Tuple tuple : reuslt){
+            System.out.println("tupele : " + tuple);
+        }
+    }
+
+
+    //문자 더하기 사용 예제
+    @Test
+    public void concat(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        //{username}_{fetch}
+        List<String> result = queryFactory
+                .select(QMember.member.username.concat("_").concat(QMember.member.age.stringValue()))
+                .from(QMember.member)
+                .where(QMember.member.username.eq("member1"))
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
+    }
+
+
+    // 프로젝션 대상이 하나인 경우
+    @Test
+    public void simpleProjection(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<String> result = queryFactory
+                .select(QMember.member.username)
+                .from(QMember.member)
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
+
+    }
+
+    //프로젝션 대상이 여러개일 경우 (반환타입이 여러개일 경우 Tuple을 사용)
+    @Test
+    public void tupleProjection(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Tuple> result = queryFactory
+                .select(QMember.member.username, QMember.member.age)
+                .from(QMember.member)
+                .fetch();
+
+        for(Tuple tuple : result){
+            String username = tuple.get(QMember.member.username);
+            Integer age = tuple.get(QMember.member.age);
+            System.out.println("username : " + username);
+            System.out.println("age : " + age);
+        }
+
+
+
+    }
+
 
 
 }
