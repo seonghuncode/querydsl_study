@@ -3,6 +3,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assert;
 import org.assertj.core.api.Assertions;
@@ -376,6 +377,103 @@ public class QuerydslBasicTest {
         //로딩, 초기화가된 엔티티인지 알려주는 기능
         boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
         Assertions.assertThat(loaded).as("페치 조인 미적용").isTrue();
+    }
+
+    // 서브 쿼리 사용 예제
+    // 나이가 가장 많은 회원 조회
+    @Test
+    public void subQuery(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        // 바깥쪽에서 사용하는 쿼리와 서브쿼리의 별칭이 겹치면 안되기 때문에 만들어 준다.
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.age.eq(
+                        //서브 쿼리
+                        JPAExpressions
+                            .select(memberSub.age.max())
+                            .from(memberSub)
+                ))
+                .fetch();
+
+        Assertions.assertThat(result).extracting("age")
+                .containsExactly(40);
+
+    }
+
+
+    // 서브 쿼리 사용 예제
+    // 나이가 평균인사인 회원
+    @Test
+    public void subQueryGoe(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        // 바깥쪽에서 사용하는 쿼리와 서브쿼리의 별칭이 겹치면 안되기 때문에 만들어 준다.
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.age.goe(
+                        //서브 쿼리
+                        JPAExpressions
+                                .select(memberSub.age.avg())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        Assertions.assertThat(result).extracting("age")
+                .containsExactly(30, 40); //평균보다 큰 값으로 예상 결과는 30, 40
+
+    }
+
+    // 서브 쿼리 사용 예제 (in 사용)
+    // 나이가 평균인사인 회원
+    @Test
+    public void subQueryIn(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        // 바깥쪽에서 사용하는 쿼리와 서브쿼리의 별칭이 겹치면 안되기 때문에 만들어 준다.
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.age.in(
+                        //서브 쿼리
+                        JPAExpressions
+                                .select(memberSub.age)
+                                .from(memberSub)
+                                .where(memberSub.age.gt(10)) //10살 초과인것
+                ))
+                .fetch();
+
+        Assertions.assertThat(result).extracting("age")
+                .containsExactly(20, 30, 40);
+
+    }
+
+
+    // select절에서 서브쿼리 사용
+    @Test
+    public void selectSubQuery(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        // 바깥쪽에서 사용하는 쿼리와 서브쿼리의 별칭이 겹치면 안되기 때문에 만들어 준다.
+        QMember memberSub = new QMember("memberSub");
+
+        List<Tuple> result = queryFactory
+                .select(QMember.member.username,
+                        JPAExpressions
+                            .select(memberSub.age.avg())
+                            .from(memberSub))
+                .from(QMember.member)
+                .fetch();
+
+        for (Tuple tuple : result){
+            System.out.println("tuple = " + tuple);
+        }
+
     }
 
 
