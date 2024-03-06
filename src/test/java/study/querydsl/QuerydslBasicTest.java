@@ -2,6 +2,7 @@ package study.querydsl;
 
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
+import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
@@ -194,6 +196,53 @@ public class QuerydslBasicTest {
         Assertions.assertThat(queryResults.getOffset()).isEqualTo(1);
         Assertions.assertThat(queryResults.getResults().size()).isEqualTo(2);
     }
+
+    //집합 함수 사용 방법
+    @Test
+    public void aggregation(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Tuple> reuslt = queryFactory //집합 함수로 원하는 것을 추출할 경우 Tuple로 반환 받는다.(여러개 타입을 받을 경우)
+                .select(
+                        QMember.member.count(),
+                        QMember.member.age.sum(),
+                        QMember.member.age.avg(),
+                        QMember.member.age.max(),
+                        QMember.member.age.min()
+                )
+                .from(QMember.member)
+                .fetch();
+
+        Tuple tuple = reuslt.get(0);
+        Assertions.assertThat(tuple.get(QMember.member.count())).isEqualTo(4);
+        Assertions.assertThat(tuple.get(QMember.member.age.sum())).isEqualTo(100);
+        Assertions.assertThat(tuple.get(QMember.member.age.avg())).isEqualTo(25);
+        Assertions.assertThat(tuple.get(QMember.member.age.max())).isEqualTo(40);
+        Assertions.assertThat(tuple.get(QMember.member.age.min())).isEqualTo(10);
+    }
+
+    //집계함수 group by 사용 (팀의 이름과 각 팀의 평균 연령을 구하라)
+    @Test
+    public void group() throws Exception{
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Tuple> result = queryFactory
+                .select(QTeam.team.name, QMember.member.age.avg())
+                .from(QMember.member)
+                .join(QMember.member.team, QTeam.team)
+                .groupBy(QTeam.team.name)
+                .fetch();
+
+        Tuple teamA = result.get(0);
+        Tuple teamB = result.get(1);
+
+        Assertions.assertThat(teamA.get(QTeam.team.name)).isEqualTo("teamA");
+        Assertions.assertThat(teamA.get(QMember.member.age.avg())).isEqualTo(15); // (10 + 20) /2
+
+        Assertions.assertThat(teamB.get(QTeam.team.name)).isEqualTo("teamB");
+        Assertions.assertThat(teamB.get(QMember.member.age.avg())).isEqualTo(35); // (30 + 40) / 2
+    }
+
 
 
 }
