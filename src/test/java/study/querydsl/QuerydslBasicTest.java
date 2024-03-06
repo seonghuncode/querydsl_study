@@ -3,6 +3,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assert;
@@ -474,6 +475,42 @@ public class QuerydslBasicTest {
             System.out.println("tuple = " + tuple);
         }
 
+    }
+
+    //Case문 사용 방법
+    @Test
+    public void basicCase(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<String> result = queryFactory
+                .select(QMember.member.age
+                    .when(10).then("열살")
+                    .when(20).then("스무살")
+                    .otherwise("기타"))
+                .from(QMember.member)
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
+    }
+
+    //복잡한 조건의 Case문
+    @Test
+    public void complexCase(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<String> result = queryFactory
+                .select(new CaseBuilder()
+                    .when(QMember.member.age.between(0, 20)).then("0살~20살")
+                    .when(QMember.member.age.between(21, 30)).then("21살~30살")
+                    .otherwise("기타"))
+                .from(QMember.member)
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
     }
 
 
