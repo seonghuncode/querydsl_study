@@ -133,5 +133,35 @@ public class QuerydslBasicTest {
                 .fetchCount();
     }
 
+    /*
+    회원 정렬 순서
+    1. 화원 나이 내림차순(desc)
+    2. 회원 이름 올림차순(asc)
+    단 2에서 회원 이름이 없으면 마지막에 출력(nulls last)
+     */
+    @Test
+    public void sort(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        //테스트 데이터 삽입
+        em.persist(new Member(null, 100));
+        em.persist(new Member("member5", 100));
+        em.persist(new Member("member6", 100));
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.age.eq(100))
+                .orderBy(QMember.member.age.desc(), QMember.member.username.asc().nullsLast())
+                .fetch();
+
+        //검증
+        Member member5 = result.get(0);
+        Member member6 = result.get(1);
+        Member memberNull = result.get(2);
+        Assertions.assertThat(member5.getUsername()).isEqualTo("member5");
+        Assertions.assertThat(member6.getUsername()).isEqualTo("member6");
+        Assertions.assertThat(memberNull.getUsername()).isNull();
+    }
+
 
 }
