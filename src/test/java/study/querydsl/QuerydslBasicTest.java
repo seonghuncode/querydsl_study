@@ -287,4 +287,46 @@ public class QuerydslBasicTest {
     }
 
 
+    //Join-on을 사용하는 방법 (조인 대상 필터링)
+    // 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인, 회원은 모두 조회(member를 기준으로 존재하는 데이터를 가지고 온다.)
+    //JPQL : select m, t from Member m left join m.team t on t.name = 'temaA'
+    @Test
+    public void  join_on_filtering(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+        
+        List<Tuple> result = queryFactory
+                .select(QMember.member, QTeam.team)
+                .from(QMember.member)
+                .leftJoin(QMember.member.team, QTeam.team).on(QTeam.team.name.eq("teamA"))
+                .fetch();
+        
+        for(Tuple tuple : result){
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+
+
+    //Join-on을 사용하는 방법 (연관관계 없는 엔티티 외부 조인)
+    // 회원의 이름이 팀 이름과 같은 대상을 외부 조인
+    @Test
+    public void join_on_no_relation(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+                .select(QMember.member, QTeam.team)
+                .from(QMember.member)
+                .leftJoin(QTeam.team).on(QMember.member.username.eq(QTeam.team.name))
+                .fetch();
+
+       for(Tuple tuple : result){
+           System.out.println("tuple = " + tuple);
+       }
+    }
+
+
 }
