@@ -17,6 +17,9 @@ import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
 import java.util.List;
 
 @SpringBootTest
@@ -326,6 +329,53 @@ public class QuerydslBasicTest {
        for(Tuple tuple : result){
            System.out.println("tuple = " + tuple);
        }
+    }
+
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    //페치조인 미적용 했을 경우
+    @Test
+    public void fetchJoinNo(){
+        //영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        Member findMember = queryFactory
+                .selectFrom(QMember.member)
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+
+        //로딩, 초기화가된 엔티티인지 알려주는 기능
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        Assertions.assertThat(loaded).as("페치 조인 미적용").isFalse();
+    }
+
+
+    //페치조인 사용방법
+    //Member의 Team은 지연로딩으로 되어 있는데 이때 페치조인을 사용하면 호출하는 Member와 연관된 모든 쿼리를 한번에 가지고 온다.
+    @Test
+    public void fetchJoinUse(){
+        //영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        Member findMember = queryFactory
+                .selectFrom(QMember.member)
+                .join(QMember.member.team, QTeam.team).fetchJoin()
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+
+        //로딩, 초기화가된 엔티티인지 알려주는 기능
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        Assertions.assertThat(loaded).as("페치 조인 미적용").isTrue();
     }
 
 
