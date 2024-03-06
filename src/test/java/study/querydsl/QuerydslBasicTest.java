@@ -4,6 +4,7 @@ package study.querydsl;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.assertj.core.api.Assert;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -243,6 +244,47 @@ public class QuerydslBasicTest {
         Assertions.assertThat(teamB.get(QMember.member.age.avg())).isEqualTo(35); // (30 + 40) / 2
     }
 
+
+    //queryDSL에서의 조인 방법
+    // TeamA에 소속된 모든 회원
+    @Test
+    public void join(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<Member> result = queryFactory
+                .selectFrom(QMember.member)
+                .join(QMember.member.team, QTeam.team)
+                .where(QTeam.team.name.eq("teamA"))
+                .fetch();
+
+        Assertions.assertThat(result)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+
+    }
+
+    //연관관계가 없는 경우 join하는 경우
+    //세타 조인 (회원의 이름이 팀 이름과 같은 회원 조회)
+    // 모든 member, team을 조인해서 이름이 같은 것들만 가지고 온다
+    // 외부 조인은 불가능 하다
+    @Test
+    public void theta_join(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = queryFactory
+                .select(QMember.member)
+                .from(QMember.member, QTeam.team)
+                .where(QMember.member.username.eq(QTeam.team.name))
+                .fetch();
+
+        Assertions.assertThat(result)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
+    }
 
 
 }
