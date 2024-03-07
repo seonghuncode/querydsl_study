@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -680,6 +681,21 @@ public class QuerydslBasicTest {
         }
     }
 
+
+    //DTO를 Q파일로 만들어서 조회하는 방법
+    @Test
+    public void findDtoByQueryProjection(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<MemberDto> result = queryFactory
+                .select(new QMemberDto(QMember.member.username, QMember.member.age))
+                .from(QMember.member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
 
 
 
