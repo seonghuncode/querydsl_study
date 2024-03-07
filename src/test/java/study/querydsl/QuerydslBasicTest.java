@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -764,4 +765,56 @@ public class QuerydslBasicTest {
     private BooleanExpression allEq(String usernameCond, Integer ageCond){
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
+
+
+
+
+    //벌크 연산 사용하는 방법 (회원의 나이가 28살 미만 이면 비회원으로 모두 변경)
+    @Test
+  //@Commit
+    public void bulkUpdate(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        //member1 = 10 => 비회원
+        //member2 = 20 => 비회원
+        //member3 = 30 => 유지
+        //member4 = 40 => 유지
+
+       long count = queryFactory
+                .update(QMember.member)
+                .set(QMember.member.username, "비회원")
+                .where(QMember.member.age.lt(28))
+                .execute();
+
+
+       //벌크 연산을 사용할 경우 영속성컨텍스트를 초기화 해주어야 된다.
+       em.flush();
+       em.clear();
+    }
+
+    //벌크 연산을 사용해 모든 회원의 나이를 한살 더할 경우
+    @Test
+    public void bulkAdd(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        long count = queryFactory
+                .update(QMember.member)
+                .set(QMember.member.age, QMember.member.age.add(1))
+                .execute();
+
+    }
+
+    // 벌크연산을 사용해서 18살 이상의 회원을 삭제
+    @Test
+    public void bulkDelete(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        long count = queryFactory
+            .delete(QMember.member)
+            .where(QMember.member.age.gt(18))
+            .execute();
+    }
+
+
+
 }
