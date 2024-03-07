@@ -1,6 +1,7 @@
 package study.querydsl;
 
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -697,6 +698,38 @@ public class QuerydslBasicTest {
         }
     }
 
+
+
+    //동적쿼리 해결방법 (BooleanBuild를 사용)
+    @Test
+    public void dynamicQuery_BooleanBuilder(){
+        // username이 member1이고, 나이가 10살인 member를 검색
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+        
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        Assertions.assertThat(result.size()).isEqualTo(1); //결과가 하나가 나오는지 테스트
+    }
+
+    //파라미터에 따라 값을 member를 찾는 검색조건 (null일 경우 해당 조건은 무시해서 찾는다)
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        BooleanBuilder builder = new BooleanBuilder();
+        if(usernameCond != null){
+            builder.and(QMember.member.username.eq(usernameCond));
+        }
+
+        if(ageCond != null){
+            builder.and(QMember.member.age.eq(ageCond));
+        }
+
+        return queryFactory
+                .selectFrom(QMember.member)
+                .where(builder)
+                .fetch();
+
+    }
 
 
 }
