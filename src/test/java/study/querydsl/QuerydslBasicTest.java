@@ -638,6 +638,24 @@ public class QuerydslBasicTest {
     }
 
 
+    //querydsl을 사용해서 조회하는 방법 (셍상지를 사용해서 접근)
+    @Test
+    public void findDtoByConstructor(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<MemberDto> result = queryFactory
+                .select(Projections.constructor(MemberDto.class,
+                        QMember.member.username,
+                        QMember.member.age))
+                .from(QMember.member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+
 
 
 }
