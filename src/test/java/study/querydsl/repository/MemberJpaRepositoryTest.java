@@ -38,4 +38,9 @@ class MemberJpaRepositoryTest {
         Assertions.assertThat(result2).containsExactly(member);
     }
 
+
+  
+
+
+
 }
