@@ -20,6 +20,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -814,6 +815,46 @@ public class QuerydslBasicTest {
             .where(QMember.member.age.gt(18))
             .execute();
     }
+
+
+    //SQL Function호출 하는 방법
+    //회원이름에서 Member라는 이름을 M으로 변경해서 조회
+    @Test
+    public void sqlFunction(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<String> result = queryFactory
+                .select(Expressions.stringTemplate(
+                        "function('replace', {0}, {1}, {2})",
+                        QMember.member.username, "member", "M"))
+                .from(QMember.member)
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
+
+    }
+
+
+
+    // 소문자로 변경하는 방법
+    @Test
+    public void sqlFunction2(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<String> result = queryFactory
+                .select(QMember.member.username)
+                .from(QMember.member)
+                .where(QMember.member.username.eq(
+                        Expressions.stringTemplate("function('lower', {0})", QMember.member.username)))
+                .fetch();
+
+        for(String s : result){
+            System.out.println("s : " + s);
+        }
+    }
+
 
 
 
