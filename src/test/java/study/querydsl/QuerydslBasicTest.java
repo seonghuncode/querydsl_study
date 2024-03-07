@@ -3,6 +3,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -597,6 +598,25 @@ public class QuerydslBasicTest {
         }
     }
 
+
+
+    //querydsl을 사용해서 조회하는 방법 (setter 사용해서 접근)
+    //기본 생성자 필요
+    @Test
+    public void findDtoBySetter(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<MemberDto> result = queryFactory
+                .select(Projections.bean(MemberDto.class,
+                        QMember.member.username,
+                        QMember.member.age))
+                .from(QMember.member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
 
 
 }
