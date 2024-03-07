@@ -619,4 +619,25 @@ public class QuerydslBasicTest {
     }
 
 
+    //querydsl을 사용해서 조회하는 방법 (필드 사용해서 접근)
+    //기본 생성자 필요 (getter, setter가 없이 값을 바로 필드에 넣어 조회한다)
+    @Test
+    public void findDtoByField(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        List<MemberDto> result = queryFactory
+                .select(Projections.fields(MemberDto.class,
+                        QMember.member.username,
+                        QMember.member.age))
+                .from(QMember.member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+
+
+
 }
