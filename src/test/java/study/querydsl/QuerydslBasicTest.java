@@ -3,6 +3,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.QTeam;
@@ -634,6 +636,29 @@ public class QuerydslBasicTest {
 
         for(MemberDto memberDto : result){
             System.out.println("memberDto : " + memberDto);
+        }
+    }
+
+    @Test
+    public void findUserDto(){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //em을 넘겨우어야 데이터를 찾을 수있다
+
+        //서브쿼리를 사용할 경우
+        QMember memberSub = new QMember("memberSub");
+
+        List<UserDto> result = queryFactory
+                .select(Projections.fields(UserDto.class,
+                        QMember.member.username.as("name"),  //DTO랑 이름이 다를 경우 맞춰주어야 한다.
+                        //서브쿼리 사용 회원 나이의 최대 나이로 조회
+                        ExpressionUtils.as(JPAExpressions
+                        .select(memberSub.age.max())
+                            .from(memberSub), "age")
+                ))
+                .from(QMember.member)
+                .fetch();
+
+        for(UserDto userDto : result){
+            System.out.println("memberDto : " + userDto);
         }
     }
 
