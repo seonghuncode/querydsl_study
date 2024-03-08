@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local # 로컬에서 돌린다는 이름명(개발자가 선택 가능)
+    active: test # test라는 프로파일로 실행된다.
   datasource:
     url: jdbc:h2:tcp://localhost/~/querydsl
     username: sa
